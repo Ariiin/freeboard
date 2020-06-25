@@ -1,0 +1,3 @@
+\\EBITDATA\DataCenter\IT사업본부\2018_KDB_NEW\소스
+
+FTP - 222.122.179.26 
