@@ -1,0 +1,128 @@
+lib에 정의할 함수 목록은 다음과 같습니다.
+
+alert : javascript를 이용한 경고창 출력
+move : javascript를 이용한 페이지 이동
+access : 조건을 만족하지 못하면 경고창 출력 + 페이지 이동
+println : 한 줄 출력
+print_pre : 엔터 문자를 그대로 출력
+query : 쿼리문 실행
+fetch : 단일 데이터 가져오기
+fetchAll : 다중 데이터 가져오기
+rowCount : 데이터의 갯수 가져오기
+
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+<?php
+
+  // 경고메세지 
+  function alert ($str) {
+    echo "<script>alert('{$str}')</script>";
+  }
+
+  // 페이지이동
+  function move ($str = false) {
+    echo "<script>";
+    echo $str ? "location.replace('{$str}')" : "history.back();";
+    echo "</script>";
+    exit;
+  }
+
+  // 조건 검사 + 경고창 + 페이지이동
+  function access ($bool, $msg, $url = false) {
+    if (!$bool) { // 조건을 만족하지 못하면
+      alert($msg); // 경고창을 띄운 후
+      move($url); // 페이지 이동
+    }
+  }
+
+  // 한 줄로 출력
+  function println ($ele) {
+    echo "<p>{$ele}</p>";
+  }
+
+  // 디버그를 위한 print
+  function print_pre ($ele) {
+    echo "<pre>";
+    print_r($ele);
+    echo "</pre>";
+  }
+
+  // 쿼리문 실행
+  function query ($sql, $arr = []) {
+    $db = new PDO("mysql:host=127.0.0.1;dbname=20190428;charset=utf8","root","xampp");
+    $res = $db->query($sql);
+    // 에러 감지
+    if ($res) {
+      $db = null; // 연결 종료
+      return $res;
+    } else {
+      // 에러가 있을 시 쿼리문과 에러 출력 후 프로그램 중지
+      println($sql);
+      print_pre($db->errorInfo());
+      exit;
+    }
+  }
+
+  // 단일 데이터 가져오기
+  function fetch ($sql) {
+    return query($sql)->fetch(PDO::FETCH_OBJ);
+  }
+
+  // 다중 데이터 가져오기
+  function fetchAll ($sql) {
+    return query($sql)->fetchAll(PDO::FETCH_OBJ);
+  }
+
+  // 데이터의 갯수 가져오기
+  function rowCount ($sql) {
+    return query($sql)->rowCount();
+  }
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+alert('경고창 출력');
+위의 코드는 echo "<script>alert('경고창 출력')</script>"; 으로 변환됩니다. 말 그대로, javascript를 이용하여 alert를 띄우는 것입니다.
+
+move('http://naver.com');
+위의 코드는 echo "<script>location.replace('http://naver.com')</script>"; 으로 변환됩니다. 기존에는 php의 header를 이용하여 페이지 이동을 했는데, 이렇게 Javascript를 이용하여 페이지 이동을 할 수 있습니다. 그런데 move의 사용법은 이게 끝이 아닙니다.
+
+move();
+이렇게 인자로 아무것도 넘기지 않으면 echo "<script>history.back()</script>"; 으로 변환됩니다. 즉, 뒤로가기가 되는 것입니다. 이렇듯 하나의 함수에는 여러가지 사용 방법이 있습니다. 그것을 정의하는 것은 오롯이 개발자의 몫입니다.
+
+$a = 10;
+
+// 01
+access($a === 10, "a는 10이 아닙니다.", "http://naver.com");
+
+// 02
+access($a === 10, "a는 10이 아닙니다.");
+
+// 03
+access($a !== 10, "a는 10이 아닙니다.");
+access는 조건을 만족하지 못하면, alert와 move를 호출합니다.
+
+일단 01과 02는 $a === 10이 true이기 때문에 alert와 move를 호출하지 않습니다.
+
+반대로, 03의 경우, $a !== 10이 false이기 때문에 "a는 10이 아닙니다"라는 경고창을 띄운 후 "뒤로가기"가 됩니다.
+
+println("안녕하세요");
+print_pre(["arr"=>[1,2,3,4]]);
+이건 디버그를 조금 더 편하게 하기 위해 만든 함수입니다. 출력이 이쁘게 되는 용도입니다.
+
+query("
+  CREATE TABLE tbl (
+    `idx` INT AUTO_INCREMENT,
+    `content` varchar(255),
+    PRIMARY KEY (`idx`)
+  );
+");
+query("INSERT INTO tbl SET content = '1234'");
+query("INSERT INTO tbl SET content = '12345'");
+query("INSERT INTO tbl SET content = '123456'");
+print_pre(fetchAll("SELECT * FROM tbl"));
+query("UPDATE tbl SET content = 'update' WHERE idx = 1");
+print_pre(fetch("SELECT * FROM tbl WHERE idx = 1"));
+query("DELETE FROM tbl WHERE idx = 1");
+print_pre(fetchAll("SELECT * FROM tbl"));
+query와 관련된 함수들입니다. 이처럼 쿼리문을 조금 더 간결하게 실행시켜줍니다.
